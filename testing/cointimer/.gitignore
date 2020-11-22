@@ -1,0 +1,5 @@
+*.o
+*.nes
+*.dbg
+*.dep
+*.ips
