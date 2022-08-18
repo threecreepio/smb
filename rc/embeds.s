@@ -1,0 +1,365 @@
+
+
+.global gameshader_bin
+.align 4
+gameshader_bin:
+.incbin "rc/gameshader.fs"
+.byte 0
+
+.global icon_bin
+.global icon_bin_size
+.align 4
+icon_bin: .incbin "rc/main.png"
+icon_bin_end:
+.align 4
+icon_bin_size: .int icon_bin_end - icon_bin
+
+.global fontchars_bin
+.global fontchars_bin_size
+.align 4
+fontchars_bin:
+.string "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ "
+fontchars_end:
+.align 4
+fontchars_bin_size: .int fontchars_end - fontchars_bin
+
+
+.global font_bin
+.global font_bin_size
+.align 4
+font_bin:
+.byte 0b00011100
+.byte 0b00110010
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00100110
+.byte 0b00011100
+.byte 0b00000000
+
+.byte 0b00011000
+.byte 0b00011100
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b01111110
+.byte 0b00000000
+
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01110000
+.byte 0b00111100
+.byte 0b00011110
+.byte 0b00000111
+.byte 0b01111111
+.byte 0b00000000
+
+.byte 0b01111110
+.byte 0b00110000
+.byte 0b00011000
+.byte 0b00111100
+.byte 0b01100000
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b00111000
+.byte 0b00111100
+.byte 0b00110110
+.byte 0b00110011
+.byte 0b01111111
+.byte 0b00110000
+.byte 0b00110000
+.byte 0b00000000
+
+.byte 0b00111111
+.byte 0b00000011
+.byte 0b00111111
+.byte 0b01100000
+.byte 0b01100000
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b00111100
+.byte 0b00000110
+.byte 0b00000011
+.byte 0b00111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b01111111
+.byte 0b01100011
+.byte 0b00110000
+.byte 0b00011000
+.byte 0b00001100
+.byte 0b00001100
+.byte 0b00001100
+.byte 0b00000000
+
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01111110
+.byte 0b01100000
+.byte 0b00110000
+.byte 0b00011110
+.byte 0b00000000
+
+.byte 0b00011100
+.byte 0b00110110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b00111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111111
+.byte 0b00000000
+
+.byte 0b00111100
+.byte 0b01100110
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b01100110
+.byte 0b00111100
+.byte 0b00000000
+
+.byte 0b00011111
+.byte 0b00110011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00110011
+.byte 0b00011111
+.byte 0b00000000
+
+.byte 0b01111111
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00111111
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b01111111
+.byte 0b00000000
+
+.byte 0b01111111
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00111111
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00000000
+
+.byte 0b01111100
+.byte 0b00000110
+.byte 0b00000011
+.byte 0b01110011
+.byte 0b01100011
+.byte 0b01100110
+.byte 0b01111100
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b01111110
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b01111110
+.byte 0b00000000
+
+.byte 0b01111000
+.byte 0b01100000
+.byte 0b01100000
+.byte 0b01100000
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b00110011
+.byte 0b00011011
+.byte 0b00001111
+.byte 0b00011111
+.byte 0b00111011
+.byte 0b01110011
+.byte 0b00000000
+
+.byte 0b00000110
+.byte 0b00000110
+.byte 0b00000110
+.byte 0b00000110
+.byte 0b00000110
+.byte 0b00000110
+.byte 0b01111110
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01110111
+.byte 0b01111111
+.byte 0b01111111
+.byte 0b01101011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01100111
+.byte 0b01101111
+.byte 0b01111111
+.byte 0b01111011
+.byte 0b01110011
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b00111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111111
+.byte 0b00000011
+.byte 0b00000011
+.byte 0b00000000
+
+.byte 0b00111110
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01111011
+.byte 0b00110011
+.byte 0b01011110
+.byte 0b00000000
+
+.byte 0b00111111
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01110011
+.byte 0b00011111
+.byte 0b00111011
+.byte 0b01110011
+.byte 0b00000000
+
+.byte 0b00011110
+.byte 0b00110011
+.byte 0b00000011
+.byte 0b00111110
+.byte 0b01100000
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b01111110
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b00111110
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01110111
+.byte 0b00111110
+.byte 0b00011100
+.byte 0b00001000
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01100011
+.byte 0b01101011
+.byte 0b01111111
+.byte 0b01111111
+.byte 0b01110111
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b01100011
+.byte 0b01110111
+.byte 0b00111110
+.byte 0b00011100
+.byte 0b00111110
+.byte 0b01110111
+.byte 0b01100011
+.byte 0b00000000
+
+.byte 0b01100110
+.byte 0b01100110
+.byte 0b01100110
+.byte 0b00111100
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00011000
+.byte 0b00000000
+
+.byte 0b01111111
+.byte 0b01110000
+.byte 0b00111000
+.byte 0b00011100
+.byte 0b00001110
+.byte 0b00000111
+.byte 0b01111111
+.byte 0b00000000
+
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+.byte 0b00000000
+font_bin_end:
+.align 4
+font_bin_size: .int font_bin_end - font_bin

@@ -1,0 +1,34 @@
+deproot  = C:\dev\vcpkg\installed\x64-windows
+cc     = clang
+ld     = ld.lld
+cflags = -Wall -I$deproot\include -O3
+#ldflags = -O3 -march=native -L$deproot\lib -lglfw3dll -luser32 -ldxguid -ldinput8 -lgdi32 -lopengl32 -lshell32 -lmsvcrt -Xlinker /NODEFAULTLIB:libcmt -mwindows
+ldflags = -O3 -march=native -L$deproot\lib -lglfw3dll -lopengl32 -lraylib -lgdi32 -lwinmm
+
+rule rc
+  command = llvm-rc $in
+
+rule compile_s
+  depfile = $out.d
+  command = $cc -MD -MF $out.d $cflags -c $in -o $out
+
+rule compile_c
+  depfile = $out.d
+  command = $cc -MD -MF $out.d $cflags -c $in -o $out
+
+rule link
+  command = $cc $ldflags $in -o $out
+
+rule copy
+  command = cmd /C copy $in $out
+
+rule embed
+  command = $ld -r -o $out -z noexecstack --format=binary $in
+
+build out\raylib.dll: copy $deproot\bin\raylib.dll
+build main.res: rc rc/main.rc
+build main.o: compile_c src/main.c
+build embeds.o: compile_s rc/embeds.s
+build out\smc.exe: link embeds.o main.o rc/main.res
+
+default out\smc.exe out\raylib.dll
