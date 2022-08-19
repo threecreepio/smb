@@ -1,5 +1,6 @@
 /.vscode
 /out
+/build
+.DS_Store
 *.o
 *.o.d
-.ninja_log

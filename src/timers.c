@@ -1,7 +1,7 @@
-#include <immintrin.h>
 #include "game.h"
 
 #ifdef __AVX2__
+#include <immintrin.h>
 __m256i timers_all = { 0x0101010101010101,0x0101010101010101,0x0101010101010101, 0x0101010101010101 };
 __m256i timers_frame = { 0x0101010101010101, 0x0101010101010101, 0, 0 };
 #endif

@@ -1,33 +1,37 @@
 
 
-.global gameshader_bin
+.global _fragment_shader_code
+.global _fragment_shader_size
 .align 4
-gameshader_bin:
-.incbin "rc/gameshader.fs"
+_fragment_shader_code:
+.incbin "../rc/fragment_shader.fs"
 .byte 0
+_fragment_shader_code_end:
+.align 4
+_fragment_shader_size: .word _fragment_shader_code_end - _fragment_shader_code
 
-.global icon_bin
-.global icon_bin_size
+.global _icon_bin
+.global _icon_bin_size
 .align 4
-icon_bin: .incbin "rc/main.png"
-icon_bin_end:
+_icon_bin: .incbin "../rc/main.png"
+_icon_bin_end:
 .align 4
-icon_bin_size: .int icon_bin_end - icon_bin
+_icon_bin_size: .int _icon_bin_end - _icon_bin
 
-.global fontchars_bin
-.global fontchars_bin_size
+.global _fontchars_bin
+.global _fontchars_bin_size
 .align 4
-fontchars_bin:
+_fontchars_bin:
 .string "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ "
-fontchars_end:
+_fontchars_end:
 .align 4
-fontchars_bin_size: .int fontchars_end - fontchars_bin
+_fontchars_bin_size: .int _fontchars_end - _fontchars_bin
 
 
-.global font_bin
-.global font_bin_size
+.global _font_bin
+.global _font_bin_size
 .align 4
-font_bin:
+_font_bin:
 .byte 0b00011100
 .byte 0b00110010
 .byte 0b01100011
@@ -360,6 +364,6 @@ font_bin:
 .byte 0b00000000
 .byte 0b00000000
 .byte 0b00000000
-font_bin_end:
+_font_bin_end:
 .align 4
-font_bin_size: .int font_bin_end - font_bin
+_font_bin_size: .int _font_bin_end - _font_bin

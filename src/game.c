@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <immintrin.h>
 #include "game.h"
 #include "titlescreen.c"
 #include "timers.c"

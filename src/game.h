@@ -1,8 +1,10 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
-#include <immintrin.h>
 #include <time.h>
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 
 #define MAX_ENTITY 6
 
