@@ -8,6 +8,12 @@
 
 #define MAX_ENTITY 6
 
+#define SFX_PAUSE 0
+#define SFX_UNPAUSE 1
+#define SFX_ENEMYSTOMP 2
+#define SFX_JUMP_BIG 3
+#define SFX_JUMP_SMALL 4
+
 #define OPERMODE_TITLE 0
 #define OPERMODE_GAME 1
 #define OPERMODE_VICTORY 2
@@ -60,7 +66,7 @@ struct gamestate {
             uint8_t t0c;
             uint8_t t0d;
             uint8_t t0e;
-            uint8_t t0f;
+            uint8_t itc_demo;
 
             uint8_t t10;
             uint8_t t11;
@@ -77,7 +83,7 @@ struct gamestate {
             uint8_t t1c;
             uint8_t t1d;
             uint8_t t1e;
-            uint8_t itc_demo;
+            uint8_t t1f;
         } list;
     } timers;
     
@@ -120,23 +126,23 @@ struct gamestate {
         uint8_t facing;
         uint8_t movingdir;
 
-        int16_t friction;
+        uint16_t friction;
         int16_t xspeed_absolute;
-        uint8_t maxrightspeed;
-        uint8_t maxleftspeed;
+        int16_t maxrightspeed;
+        int16_t maxleftspeed;
         uint8_t animationspeed;
-        int16_t ymf_dummy;
         int16_t jumporigin_y;
-        int16_t runningspeed;
-        bool swimming;
-        bool inwhirlpool;
+        int8_t runningspeed;
+        uint8_t swimming;
+        uint8_t inwhirlpool;
 
-        int16_t verticalforceup;
-        int16_t verticalforcedown;
+        int8_t verticalforce;
+        int8_t verticalforcedown;
+        int16_t x_scroll;
     } player;
 
 
-    int scrollx;
+    uint32_t scrollx;
     int destinationarea;
     int areanumber;
     int eventoffset;

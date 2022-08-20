@@ -4766,6 +4766,8 @@ PJumpSnd:  lda #Sfx_BigJump           ;load big mario's jump sound by default
            beq SJumpSnd
            lda #Sfx_SmallJump         ;if not, load small mario's jump sound
 SJumpSnd:  sta Square1SoundQueue      ;store appropriate jump sound in square 1 sfx queue
+
+
 X_Physics: ldy #$00
            sty $00                    ;init value here
            lda Player_State           ;if mario is on the ground, branch

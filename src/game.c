@@ -3,11 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "game.h"
-#include "titlescreen.c"
 #include "timers.c"
 #include "rng.c"
 #include "soundengine.c"
 #include "areas.c"
+#include "gameengine.c"
+#include "titlescreen.c"
 
 static inline uint8_t pause_step(struct gamestate *game) {
     // cant be paused outside game state
@@ -46,4 +47,5 @@ static inline void nmi(struct gamestate *game) {
         }
     }
     game->joypad1_previous = game->joypad1;
+    game->joypad1 = 0;
 }

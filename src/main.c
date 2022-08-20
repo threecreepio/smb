@@ -43,15 +43,16 @@ Color metatiles[0x20] = {
 };
 
 void joypad_read(struct gamestate *game) {
-    if (!IsGamepadAvailable(0)) return;
-    uint8_t left   = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT)   ? INPUT_LEFT : 0;
-    uint8_t right  = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)  ? INPUT_RIGHT : 0;
-    uint8_t up     = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP)     ? INPUT_UP : 0;
-    uint8_t down   = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN)   ? INPUT_DOWN : 0;
-    uint8_t b      = IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)  ? INPUT_B : 0;
-    uint8_t a      = IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT) ? INPUT_A : 0;
-    uint8_t select = IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_LEFT)      ? INPUT_SELECT : 0;
-    uint8_t start  = IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_RIGHT)     ? INPUT_START : 0;
+    //if (!IsGamepadAvailable(0)) return;
+    
+    uint8_t left   = IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT)   ? INPUT_LEFT : 0;
+    uint8_t right  = IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)  ? INPUT_RIGHT : 0;
+    uint8_t up     = IsKeyDown(KEY_UP) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP)     ? INPUT_UP : 0;
+    uint8_t down   = IsKeyDown(KEY_DOWN) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN)   ? INPUT_DOWN : 0;
+    uint8_t b      = IsKeyDown(KEY_A) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)  ? INPUT_B : 0;
+    uint8_t a      = IsKeyDown(KEY_S) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT) ? INPUT_A : 0;
+    uint8_t select = IsKeyDown(KEY_M) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_LEFT)      ? INPUT_SELECT : 0;
+    uint8_t start  = IsKeyDown(KEY_N) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_RIGHT)     ? INPUT_START : 0;
     game->joypad1 = left | right | up | down | b | a | select | start;
 }
 
@@ -59,8 +60,6 @@ void joypad_read(struct gamestate *game) {
 Font defaultFont = { 0 };
 extern void LoadSMBFont(void)
 {
-    #define BIT_CHECK(a,b) ((a) & (1u << (b)))
-
     defaultFont.glyphCount = fontchars_bin_size;
     defaultFont.glyphPadding = 0;
 
@@ -167,29 +166,44 @@ static inline int main_gui(int argc, char **argv) {
     memset(&game, 0, sizeof(struct gamestate));
     memcpy(game.areadata, areadata[0], 0x200 * 0x10);
 
+    game.entities.x[0] = 0x002800;
+    game.entities.y[0] = 0x01B000;
     game.scrollx = 0;
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
         BeginDrawing();
         ClearBackground(CLITERAL(Color){ 146, 144, 255, 255 });
+        int scrollpx = game.scrollx >> 8;
+        printf("scroll %06X %06X | x : %06X : %06X | y : %06X : %06X | inputs %02X\n",
+            game.scrollx, game.scrollx - game.entities.x[0],
+            game.entities.x[0], game.entities.xspeed[0],
+            game.entities.y[0], game.entities.yspeed[0],
+            game.joypad1_previous
+        );
 
-        int scrollx = game.scrollx % 0x10;
-        int mapofsx = game.scrollx / 0x10;
+        int scrollx = scrollpx % 0x10;
+        int mapofsx = scrollpx / 0x10;
 
         for (int bgy = 0; bgy < 0x10; ++bgy) {
             for (int bgx = 0; bgx <= 0x10; ++bgx) {
-                uint8_t metatile = game.areadata[bgx + (game.scrollx >> 4)][bgy];
+                uint8_t metatile = game.areadata[bgx + (scrollpx >> 4)][bgy];
                 if (metatile == 0) continue;
                 Color bg = metatiles[metatile % 0x20];
-                int scrollx_px = game.scrollx & 0x0F;
+                int scrollx_px = scrollpx & 0x0F;
                 DrawRectangle((0x10 * bgx - scrollx_px) * scale, (0x10 * bgy) * scale, 0x10 * scale, 0x10 * scale, bg);
             }
         }
 
         for (int s = 0; s < MAX_ENTITY; ++s) {
             if (s != 0 && game.entities.type[s] == 0) continue;
-            DrawRectangle(game.entities.x[s] - game.scrollx, game.entities.y[s] - (0x10 * 0x10), 0x10, 0x10, MAGENTA);
+            //printf(":: %04X\n", game.entities.yspeed[s]);
+            DrawRectangle(
+                scale * ((game.entities.x[s] >> 8) - (game.scrollx >> 8)),
+                scale * ((game.entities.y[s] - 0x010000) >> 8),
+                scale * 0x10, scale * 0x10,
+                MAGENTA
+            );
         }
 
         Vector2 fp = { 0x8 * scale, 0x8 * scale };
@@ -198,8 +212,6 @@ static inline int main_gui(int argc, char **argv) {
         DrawTextEx(defaultFont, "000000", fp, 0x8 * scale, 0.0f, WHITE);
         EndDrawing();
         joypad_read(&game);
-        if (game.joypad1 & INPUT_RIGHT) game.scrollx += 1;
-        else if (game.joypad1 & INPUT_LEFT) game.scrollx -= 1;
         nmi(&game);
     }
 
@@ -219,7 +231,7 @@ static inline int main_headless(int argc, char **argv) {
     
     //double end = get_millis();
 
-    printf("size: %lld\n", sizeof(struct gamestate));
+    printf("size: %lu\n", sizeof(struct gamestate));
     //printf("ms elapsed: %f\n", (end - start));
     //printf("ms per step: %f\n", (end - start) / ((float)COUNT));
     //printf("fps: %f\n", 1000.0 / ((end - start) / ((float)COUNT)));
