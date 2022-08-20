@@ -7,7 +7,6 @@
 #include "timers.c"
 #include "rng.c"
 #include "soundengine.c"
-#include "utils.c"
 #include "areas.c"
 
 static inline uint8_t pause_step(struct gamestate *game) {
@@ -46,4 +45,5 @@ static inline void nmi(struct gamestate *game) {
             case OPERMODE_TITLE: titlescreen_step(game); break;
         }
     }
+    game->joypad1_previous = game->joypad1;
 }

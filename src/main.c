@@ -1,190 +1,231 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "glad/gl.h"
+#define RAYGUI_IMPLEMENTATION
 #include <GLFW/glfw3.h>
+#include <raylib.h>
+#include <rlgl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <raygui.h>
+#include "game.h"
 #include "game.c"
 
-#define errlog stderr
 
-struct VTexData { GLfloat pos[2]; GLfloat uv[2]; };
-static const struct VTexData vertices[] =
-{
-  { { -1.f, -1.f }, { 0.f, 1.f } },
-  { { -1.f,  1.f }, { 0.f, 0.f } },
-  { {  1.f,  1.f }, { 1.f, 0.f } },
+extern const uint8_t gameshader_bin[];
 
-  { { -1.f, -1.f }, { 0.f, 1.f } },
-  { {  1.f,  1.f }, { 1.f, 0.f } },
-  { {  1.f, -1.f }, { 1.f, 1.f } },
+extern const uint8_t font_bin[];
+extern const char fontchars_bin[];
+extern const uint32_t font_bin_size;
+extern const uint32_t fontchars_bin_size;
+
+Color metatiles[0x20] = {
+    { 0, 0, 0, 0xFF },
+    { 10, 0, 0, 0xFF },
+    { 20, 0, 0, 0xFF },
+    { 30, 0, 0, 0xFF },
+    { 40, 0, 0, 0xFF },
+    { 50, 0, 0, 0xFF },
+    { 60, 0, 0, 0xFF },
+    { 70, 0, 0, 0xFF },
+    { 80, 0, 0, 0xFF },
+    { 90, 0, 0, 0xFF },
+    { 100, 0, 0, 0xFF },
+    { 110, 0, 0, 0xFF },
+    { 120, 0, 0, 0xFF },
+    { 130, 0, 0, 0xFF },
+    { 140, 0, 0, 0xFF },
+    { 150, 0, 0, 0xFF },
+    { 160, 0, 0, 0xFF },
+    { 170, 0, 0, 0xFF },
+    { 180, 0, 0, 0xFF },
+    { 190, 0, 0, 0xFF },
+    { 200, 0, 0, 0xFF },
 };
 
-static const char* vertex_shader_text =
-"#version 330\n"
-"in vec2 vPos;\n"
-"in vec2 vUV;\n"
-"out vec2 uv;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(vPos, 0.0, 1.0);\n"
-"    uv = vUV;\n"
-"}\n";
+void joypad_read(struct gamestate *game) {
+    if (!IsGamepadAvailable(0)) return;
+    uint8_t left   = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT)   ? INPUT_LEFT : 0;
+    uint8_t right  = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)  ? INPUT_RIGHT : 0;
+    uint8_t up     = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP)     ? INPUT_UP : 0;
+    uint8_t down   = IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN)   ? INPUT_DOWN : 0;
+    uint8_t b      = IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)  ? INPUT_B : 0;
+    uint8_t a      = IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT) ? INPUT_A : 0;
+    uint8_t select = IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_LEFT)      ? INPUT_SELECT : 0;
+    uint8_t start  = IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_RIGHT)     ? INPUT_START : 0;
+    game->joypad1 = left | right | up | down | b | a | select | start;
+}
 
-extern const char fragment_shader_code[];
-extern const uint32_t fragment_shader_size;
 
-static void GlfwErrorCallback(int error, const char* description)
+Font defaultFont = { 0 };
+extern void LoadSMBFont(void)
 {
-    fprintf(errlog, "glfw error %s\n", description);
-}
+    #define BIT_CHECK(a,b) ((a) & (1u << (b)))
 
-static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
+    defaultFont.glyphCount = fontchars_bin_size;
+    defaultFont.glyphPadding = 0;
 
+    Image imFont = {
+        .data = calloc(8*(8*defaultFont.glyphCount), 2),
+        .width = 8,
+        .height = defaultFont.glyphCount * 8,
+        .format = PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA,
+        .mipmaps = 1
+    };
 
-
-GLuint LoadAreaTexture(int areanumber) {
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 0x10, 0x200, 0, GL_RED, GL_UNSIGNED_BYTE, areadata[areanumber]);
-    return textureID;
-}
-
-int LoadShader(const GLuint shader, const char *source) {
-    GLint ok = 0;
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
-    if (ok == GL_FALSE) {
-        GLint maxLength = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-        GLchar *errorLog = calloc(maxLength, 1);
-        glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-        glDeleteShader(shader);
-        printf("shader load error: %s\n", errorLog);
-        free(errorLog);
-        return -1;
-    }
-    return 0;
-}
-
-int main(int argc, char **argv) {
-    glfwSetErrorCallback(GlfwErrorCallback);
-
-    if (!glfwInit()) {
-        const char* description;
-        glfwGetError(&description);
-        fprintf(errlog, "glfw init error %s\n", description);
-        return -1;
-    }
-
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(1, 1, "Super Mario C", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        fprintf(errlog, "failed to create window\n");
-        return -1;
-    }
-
-    glfwSetKeyCallback(window, GlfwKeyCallback);
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGL(glfwGetProcAddress)) {
-        fprintf(errlog, "failed to init gl context\n");
-        return -1;
-    }
-
-    GLuint vertex_buffer;
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    if (0 != LoadShader(vertex_shader, vertex_shader_text)) {
-        return -1;
-    }
-
-    const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    if (0 != LoadShader(fragment_shader, fragment_shader_code)) {
-        return -1;
-    }
-
-    const GLuint program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-
-    const GLint vpos_location = glGetAttribLocation(program, "vPos");
-    const GLint vuv_location = glGetAttribLocation(program, "vUV");
-    const GLint scrollx_location = glGetUniformLocation(program, "scrollx");
-
-    GLuint vertex_array;
-    glGenVertexArrays(1, &vertex_array);
-    glBindVertexArray(vertex_array);
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE, sizeof(struct VTexData), (void*) offsetof(struct VTexData, pos));
-    glEnableVertexAttribArray(vuv_location);
-    glVertexAttribPointer(vuv_location, 2, GL_FLOAT, GL_FALSE, sizeof(struct VTexData), (void*) offsetof(struct VTexData, uv));
-
-    int scale = 3;
-    glViewport(0, 0, 256 * scale, 240 * scale);
-    glfwSetWindowSize(window, 256 * scale, 240 * scale);
-
-    GLuint tex0 = LoadAreaTexture(0);
-    GLuint tex1 = LoadAreaTexture(1);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex1);
-
-    glUseProgram(program);
-    glUniform1i(glGetUniformLocation(program, "tex0"), 0);
-    int scrollx = 0;
-    int scrolly = 0;
-    int frames = 0;
-    double ts = glfwGetTime();
-    double tsnow = glfwGetTime();
-
-    struct gamestate game = { 0 };
-    while (!glfwWindowShouldClose(window)) {
-        frames += 1;
-        //double now = glfwGetTime();
-        //if (now - ts >= 10.0) {
-        //    printf("FPS: %f\n", (double)frames / (now - ts));
-        //    ts = now;
-        //    frames = 0;
-        //}
-        nmi(&game);
-
-        glUniform1i(scrollx_location, game.scrollx);
-        //if (frames % 0x3 == 0) { scrollx += 1; }
-        scrollx += 1;
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glFinish();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        while (1) {
-            double pending = glfwGetTime();
-            if (pending - tsnow >= 1.0 / 60.098814) {
-                tsnow = pending;
-                break;
+    for (int chr = 0; chr < fontchars_bin_size; ++chr) {
+        for (int y = 0; y < 8; ++y) {
+            for (int x = 0; x < 8; ++x) {
+                uint8_t filled = (font_bin[(chr * 8) + y] >> x) & 1;
+                ((unsigned short *)imFont.data)[x + (y * 8) + (chr * 8 * 8)] = filled ? 0xffff : 0x0000;
             }
         }
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    defaultFont.texture = LoadTextureFromImage(imFont);
+    defaultFont.glyphs = (GlyphInfo *)RL_MALLOC(defaultFont.glyphCount*sizeof(GlyphInfo));
+    defaultFont.recs = (Rectangle *)RL_MALLOC(defaultFont.glyphCount*sizeof(Rectangle));
+
+    for (int i = 0; i < defaultFont.glyphCount; i++)
+    {
+        defaultFont.glyphs[i].value = fontchars_bin[i];  // First char is 32
+
+        defaultFont.recs[i].x = 0;
+        defaultFont.recs[i].y = 8 * i;
+        defaultFont.recs[i].width = 8;
+        defaultFont.recs[i].height = 8;
+
+        defaultFont.glyphs[i].offsetX = 0;
+        defaultFont.glyphs[i].offsetY = 0;
+        defaultFont.glyphs[i].advanceX = 0;
+
+        defaultFont.glyphs[i].image = ImageFromImage(imFont, defaultFont.recs[i]);
+    }
+
+    defaultFont.baseSize = 8;
+}
+
+
+Vector3 pal[8 * 4] = {
+    { 0.0f, 0.0f, 0.0f },
+    { 1.0f, 0.0f, 0.0f },
+    { 0.0f, 1.0f, 0.0f },
+    { 0.0f, 0.0f, 1.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f },
+    
+};
+
+
+static inline int main_gui(int argc, char **argv) {
+    int scale = 3;
+    const int screenWidth = 256 * scale;
+    const int screenHeight = 240 * scale;
+
+    InitWindow(screenWidth, screenHeight, "Super Mario C");
+    //SetExitKey(0);
+    Image imBlank = GenImageColor(screenWidth, screenHeight, BLANK);
+    Texture2D texture = LoadTextureFromImage(imBlank);  // Load blank texture to fill on shader
+    UnloadImage(imBlank);
+
+    LoadSMBFont();
+
+    struct gamestate game;
+    memset(&game, 0, sizeof(struct gamestate));
+    memcpy(game.areadata, areadata[0], 0x200 * 0x10);
+
+    game.scrollx = 0;
+    SetTargetFPS(60);
+    while (!WindowShouldClose())
+    {
+        BeginDrawing();
+        ClearBackground(CLITERAL(Color){ 146, 144, 255, 255 });
+
+        int scrollx = game.scrollx % 0x10;
+        int mapofsx = game.scrollx / 0x10;
+
+        for (int bgy = 0; bgy < 0x10; ++bgy) {
+            for (int bgx = 0; bgx <= 0x10; ++bgx) {
+                uint8_t metatile = game.areadata[bgx + (game.scrollx >> 4)][bgy];
+                if (metatile == 0) continue;
+                Color bg = metatiles[metatile % 0x20];
+                int scrollx_px = game.scrollx & 0x0F;
+                DrawRectangle((0x10 * bgx - scrollx_px) * scale, (0x10 * bgy) * scale, 0x10 * scale, 0x10 * scale, bg);
+            }
+        }
+
+        for (int s = 0; s < MAX_ENTITY; ++s) {
+            if (s != 0 && game.entities.type[s] == 0) continue;
+            DrawRectangle(game.entities.x[s] - game.scrollx, game.entities.y[s] - (0x10 * 0x10), 0x10, 0x10, MAGENTA);
+        }
+
+        Vector2 fp = { 0x8 * scale, 0x8 * scale };
+        DrawTextEx(defaultFont, "MARIO", fp, 0x8 * scale, 0.0f, WHITE);
+        fp.y += 0x8 * scale;
+        DrawTextEx(defaultFont, "000000", fp, 0x8 * scale, 0.0f, WHITE);
+        EndDrawing();
+        joypad_read(&game);
+        if (game.joypad1 & INPUT_RIGHT) game.scrollx += 1;
+        else if (game.joypad1 & INPUT_LEFT) game.scrollx -= 1;
+        nmi(&game);
+    }
+
+    CloseWindow();
     return 0;
+}
+
+static inline int main_headless(int argc, char **argv) {
+    struct gamestate game;
+    memset(&game, 0, sizeof(struct gamestate));
+    //double start = get_millis();
+    #define COUNT 100000000
+
+    for (int i=0; i<COUNT; ++i) {
+        nmi(&game);
+    }
+    
+    //double end = get_millis();
+
+    printf("size: %lld\n", sizeof(struct gamestate));
+    //printf("ms elapsed: %f\n", (end - start));
+    //printf("ms per step: %f\n", (end - start) / ((float)COUNT));
+    //printf("fps: %f\n", 1000.0 / ((end - start) / ((float)COUNT)));
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    return main_gui(argc, argv);
 }
