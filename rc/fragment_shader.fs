@@ -6,7 +6,11 @@ in vec2 uv;
 out vec4 fragment;
 void main()
 {
-    vec2 pos = floor(vec2(uv.y * 0x10, floor(scrollx / 0x10) + (uv.x * 0x10)));
-    float tile = texture(tex0, vec2(1.0 / 0x10, 1.0 / 0x200) * pos).r;
+    float b16 = 1.0 / 0x10;
+    float stagelen = 0x200;
+
+    vec2 basepos = vec2(uv.y, uv.x + (scrollx / float(0x10) * b16));
+    vec2 pos = floor(vec2(basepos.x * 0x10, basepos.y * 0x10));
+    float tile = texture(tex0, vec2(b16, 1.0 / stagelen) * pos).r;
     fragment = vec4(tile);
 }

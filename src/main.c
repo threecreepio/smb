@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
-#include "areas.c"
+#include "game.c"
 
 #define errlog stderr
 
@@ -47,32 +47,13 @@ static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int actio
 
 
 
-GLuint LoadTexture() {
-    char image[0x10][0x10] = {
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xA0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xA0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-        { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-    };
-    
+GLuint LoadAreaTexture(int areanumber) {
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 0x10, 0x200, 0, GL_RED, GL_UNSIGNED_BYTE, areadata[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 0x10, 0x200, 0, GL_RED, GL_UNSIGNED_BYTE, areadata[areanumber]);
     return textureID;
 }
 
@@ -107,8 +88,8 @@ int main(int argc, char **argv) {
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(1, 1, "Super Mario C", NULL, NULL);
@@ -148,10 +129,6 @@ int main(int argc, char **argv) {
     const GLint vpos_location = glGetAttribLocation(program, "vPos");
     const GLint vuv_location = glGetAttribLocation(program, "vUV");
     const GLint scrollx_location = glGetUniformLocation(program, "scrollx");
-    if (vpos_location < 0 || vuv_location < 0 || scrollx_location < 0) {
-        fprintf(errlog, "failed to get attrib locations\n");
-        return -1;
-    }
 
     GLuint vertex_array;
     glGenVertexArrays(1, &vertex_array);
@@ -161,22 +138,50 @@ int main(int argc, char **argv) {
     glEnableVertexAttribArray(vuv_location);
     glVertexAttribPointer(vuv_location, 2, GL_FLOAT, GL_FALSE, sizeof(struct VTexData), (void*) offsetof(struct VTexData, uv));
 
-    glViewport(0, 0, 256, 240);
-    glfwSetWindowSize(window, 256, 240);
+    int scale = 3;
+    glViewport(0, 0, 256 * scale, 240 * scale);
+    glfwSetWindowSize(window, 256 * scale, 240 * scale);
+
+    GLuint tex0 = LoadAreaTexture(0);
+    GLuint tex1 = LoadAreaTexture(1);
 
     glActiveTexture(GL_TEXTURE0);
-    GLuint tex = LoadTexture();
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindTexture(GL_TEXTURE_2D, tex1);
 
     glUseProgram(program);
     glUniform1i(glGetUniformLocation(program, "tex0"), 0);
     int scrollx = 0;
+    int scrolly = 0;
+    int frames = 0;
+    double ts = glfwGetTime();
+    double tsnow = glfwGetTime();
+
+    struct gamestate game = { 0 };
     while (!glfwWindowShouldClose(window)) {
-        glUniform1i(scrollx_location, scrollx);
+        frames += 1;
+        //double now = glfwGetTime();
+        //if (now - ts >= 10.0) {
+        //    printf("FPS: %f\n", (double)frames / (now - ts));
+        //    ts = now;
+        //    frames = 0;
+        //}
+        nmi(&game);
+
+        glUniform1i(scrollx_location, game.scrollx);
+        //if (frames % 0x3 == 0) { scrollx += 1; }
         scrollx += 1;
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glFinish();
+        glfwSwapBuffers(window);
         glfwPollEvents();
+
+        while (1) {
+            double pending = glfwGetTime();
+            if (pending - tsnow >= 1.0 / 60.098814) {
+                tsnow = pending;
+                break;
+            }
+        }
     }
 
     glfwDestroyWindow(window);

@@ -93,13 +93,14 @@ struct gamestate {
 
     struct {
         uint8_t type[MAX_ENTITY];
-        uint16_t x[MAX_ENTITY];
-        uint16_t y[MAX_ENTITY];
+        int16_t x[MAX_ENTITY];
+        int16_t y[MAX_ENTITY];
+        int16_t xspeed[MAX_ENTITY];
+        int16_t yspeed[MAX_ENTITY];
     } entities;
 
-    uint16_t scrollx;
+    int scrollx;
     int destinationarea;
     int areanumber;
-    int areadataoffset;
-    int areaentityoffset;
+    int eventoffset;
 };
