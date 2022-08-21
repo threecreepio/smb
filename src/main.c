@@ -13,10 +13,10 @@
 
 extern const uint8_t gameshader_bin[];
 
-extern const uint8_t font_bin[];
-extern const char fontchars_bin[];
-extern const uint32_t font_bin_size;
-extern const uint32_t fontchars_bin_size;
+extern const uint8_t font_bin[] asm("_font_bin");
+extern const char fontchars_bin[] asm("_fontchars_bin");
+extern const uint32_t font_bin_size asm("_font_bin_size");
+extern const uint32_t fontchars_bin_size asm("_fontchars_bin_size");
 
 Color metatiles[0x20] = {
     { 0, 0, 0, 0xFF },
@@ -172,15 +172,17 @@ static inline int main_gui(int argc, char **argv) {
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
+        printf("frame\n");
         BeginDrawing();
         ClearBackground(CLITERAL(Color){ 146, 144, 255, 255 });
-        int scrollpx = game.scrollx >> 8;
+        int scrollpx = game.scrollx >> 0x08;
+        /*
         printf("scroll %06X %06X | x : %06X : %06X | y : %06X : %06X | inputs %02X\n",
             game.scrollx, game.scrollx - game.entities.x[0],
             game.entities.x[0], game.entities.xspeed[0],
             game.entities.y[0], game.entities.yspeed[0],
             game.joypad1_previous
-        );
+        );*/
 
         int scrollx = scrollpx % 0x10;
         int mapofsx = scrollpx / 0x10;
@@ -199,7 +201,7 @@ static inline int main_gui(int argc, char **argv) {
             if (s != 0 && game.entities.type[s] == 0) continue;
             //printf(":: %04X\n", game.entities.yspeed[s]);
             DrawRectangle(
-                scale * ((game.entities.x[s] >> 8) - (game.scrollx >> 8)),
+                scale * ((game.entities.x[s] - game.scrollx) >> 8),
                 scale * ((game.entities.y[s] - 0x010000) >> 8),
                 scale * 0x10, scale * 0x10,
                 MAGENTA
@@ -210,9 +212,9 @@ static inline int main_gui(int argc, char **argv) {
         DrawTextEx(defaultFont, "MARIO", fp, 0x8 * scale, 0.0f, WHITE);
         fp.y += 0x8 * scale;
         DrawTextEx(defaultFont, "000000", fp, 0x8 * scale, 0.0f, WHITE);
-        EndDrawing();
         joypad_read(&game);
         nmi(&game);
+        EndDrawing();
     }
 
     CloseWindow();

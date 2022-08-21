@@ -133,7 +133,6 @@ static inline void player_friction(struct gamestate *game) {
         }
         if (xspeed > 0) friction_dir = -1;
         else {
-            printf("LLLL\n");
             friction_dir = 1;
         }
     } else {
@@ -144,7 +143,6 @@ static inline void player_friction(struct gamestate *game) {
     if (friction_dir == 1) {
         xspeed += game->player.friction;
         if ((int16_t)(xspeed & 0xFF00) > game->player.maxrightspeed) {
-            printf("MAXSPEED %04X (max is %04X)\n", xspeed, game->player.maxrightspeed);
             xspeed = game->player.maxrightspeed | (xspeed & 0xFF);
         }
         game->player.xspeed_absolute = xspeed;
@@ -161,10 +159,12 @@ static inline void player_friction(struct gamestate *game) {
 static inline void player_movehorizontal(struct gamestate *game) {
     game->entities.x[0] = (game->entities.x[0] + (game->entities.xspeed[0] >> 4)) & 0xFFFFF0;
     game->player.x_scroll = game->entities.xspeed[0]; // & 0xFF;
-    if ((game->entities.x[0] - game->scrollx) >= 0x7000) {
+    //if ((game->entities.x[0] - game->scrollx >> 4) >= 0x7000) {
         //game->scrollx += 0x0200;
-        game->scrollx += game->player.x_scroll >> 4;
-    }
+      //  printf("scrollx\n");
+        game->scrollx = game->entities.x[0] - 0x40; //game->player.x_scroll;
+    //}
+
 }
 
 static inline void player_movevertical(struct gamestate *game) {

@@ -44,7 +44,7 @@ static inline void titlescreen_startgame(struct gamestate *game, int continuegam
 
 static inline void titlescreen_menu(struct gamestate *game) {
     // should we run the demo?
-    if (game->timers.list.itc_demo == 0) {
+    if (game->timers.list.itc_demo == 0xFF) {
         // cancel demo if player presses buttons
         int end = game->joypad1 != 0;
         // otherwise, check if we have more demo to play

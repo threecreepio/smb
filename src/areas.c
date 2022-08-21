@@ -8,7 +8,7 @@ struct areaevent {
     uint32_t arg1;
 };
 
-extern const uint8_t areadata[2][0x200][0x10];
+extern const uint8_t areadata[2][0x200][0x10] asm("_areadata");
 
 /*
 uint8_t areadata[2][0x200][0x10] = {
