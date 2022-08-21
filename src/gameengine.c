@@ -86,13 +86,18 @@ static inline void gameroutines_playerphysics(struct gamestate *game) {
         maxspeed = 0x1800;
         friction = 0x98;
         gottagofast = game->joypad1 & INPUT_B;
+        if (game->joypad1 & INPUT_B) {
+            game->timers.list.running = 0x0a;
+        }
+        printf("%02X\n", game->joypad1 & INPUT_B);
     }
 
     if (gottagofast) {
         if (game->gameengine_task == 0x7) {
             maxspeed = 0x1000;
             friction = 0xd0;
-        } else if (game->player.runningspeed || game->player.xspeed_absolute >= 0x2100) {
+        //} else if (game->player.runningspeed || game->player.xspeed_absolute >= 0x2100) {
+        } else if (game->player.runningspeed || game->player.xspeed_absolute >= 0x1C00) {
             speedvalue += 1;
             maxspeed = 0x2800;
             friction = 0xe4;
@@ -157,14 +162,13 @@ static inline void player_friction(struct gamestate *game) {
 }
 
 static inline void player_movehorizontal(struct gamestate *game) {
-    game->entities.x[0] = (game->entities.x[0] + (game->entities.xspeed[0] >> 4)) & 0xFFFFF0;
-    game->player.x_scroll = game->entities.xspeed[0]; // & 0xFF;
-    //if ((game->entities.x[0] - game->scrollx >> 4) >= 0x7000) {
-        //game->scrollx += 0x0200;
-      //  printf("scrollx\n");
-        game->scrollx = game->entities.x[0] - 0x40; //game->player.x_scroll;
-    //}
+    if (game->jumpspring_state != 0) return;
+    int32_t prev_x = game->entities.x[0];
+    int32_t next_x = (prev_x + (game->entities.xspeed[0] >> 4)) & 0xFFFFF0;
+    game->player.x_scroll = (next_x - prev_x) >> 7;
+    //printf("player_x_scroll: %d\n", game->player.x_scroll);
 
+    game->entities.x[0] = next_x;
 }
 
 static inline void player_movevertical(struct gamestate *game) {
