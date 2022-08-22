@@ -36,6 +36,9 @@
 #define PLAYERSTATE_FALLING 2
 #define PLAYERSTATE_CLIMBING 3
 
+#define BBOX_PLAYER_SMALL 0
+#define BBOX_PLAYER_BIG 1
+
 struct entities {
     uint16_t x[MAX_ENTITY];
     uint16_t y[MAX_ENTITY];
@@ -100,7 +103,7 @@ struct gamestate {
 
     uint8_t pause_state;
     uint8_t pause_timer;
-    bool worldselectenabled;
+    uint8_t worldselectenabled;
     int number_of_players;
     int worldnumber;
     int levelnumber;
@@ -115,6 +118,7 @@ struct gamestate {
         int16_t xspeed[MAX_ENTITY];
         int16_t yspeed[MAX_ENTITY];
         uint8_t collision[MAX_ENTITY];
+        uint8_t bboxtype[MAX_ENTITY];
     } entities;
 
     struct {
@@ -131,14 +135,16 @@ struct gamestate {
         int16_t maxrightspeed;
         int16_t maxleftspeed;
         uint8_t animationspeed;
-        int16_t jumporigin_y;
+        int32_t jumporigin_y;
         int8_t runningspeed;
         uint8_t swimming;
         uint8_t inwhirlpool;
 
-        int8_t verticalforce;
-        int8_t verticalforcedown;
+        uint8_t verticalforce;
+        uint8_t verticalforcedown;
         int16_t x_scroll;
+
+        int16_t disablecollisions;
     } player;
 
 

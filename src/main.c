@@ -152,7 +152,7 @@ Vector3 pal[8 * 4] = {
 static inline int main_gui(int argc, char **argv) {
     int scale = 3;
     const int screenWidth = 256 * scale;
-    const int screenHeight = 240 * scale;
+    const int screenHeight = 256 * scale;
 
     InitWindow(screenWidth, screenHeight, "Super Mario C");
     //SetExitKey(0);
@@ -167,14 +167,17 @@ static inline int main_gui(int argc, char **argv) {
     memcpy(game.areadata, areadata[0], 0x200 * 0x10);
 
     game.entities.x[0] = 0x002800;
+    game.entities.y[0] = 0x010000;
     game.entities.y[0] = 0x01B000;
     game.scrollx = 0;
+    game.player.size = PLAYERSIZE_SMALL;
+    game.player.verticalforcedown = 0x28;
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-        printf("frame\n");
         BeginDrawing();
         ClearBackground(CLITERAL(Color){ 146, 144, 255, 255 });
+        game.scrollx = game.entities.x[0] - 0x2800;
         int scrollpx = game.scrollx >> 0x08;
         /*
         printf("scroll %06X %06X | x : %06X : %06X | y : %06X : %06X | inputs %02X\n",
@@ -202,7 +205,7 @@ static inline int main_gui(int argc, char **argv) {
             //printf(":: %04X\n", game.entities.yspeed[s]);
             DrawRectangle(
                 scale * ((game.entities.x[s] - game.scrollx) >> 8),
-                scale * ((game.entities.y[s] - 0x010000) >> 8),
+                scale * ((game.entities.y[s] - 0x010000 + 0x2000) >> 8),
                 scale * 0x10, scale * 0x10,
                 MAGENTA
             );
